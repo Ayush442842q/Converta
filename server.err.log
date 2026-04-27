@@ -1,0 +1,35 @@
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:8000
+Press CTRL+C to quit
+127.0.0.1 - - [26/Apr/2026 21:00:10] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [26/Apr/2026 21:00:17] "POST /convert HTTP/1.1" 200 -
+127.0.0.1 - - [26/Apr/2026 21:21:10] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [26/Apr/2026 21:21:10] "GET /static/styles.css HTTP/1.1" 200 -
+127.0.0.1 - - [26/Apr/2026 21:21:10] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [26/Apr/2026 22:21:21] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [26/Apr/2026 22:22:12] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [26/Apr/2026 22:23:30] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [26/Apr/2026 22:23:33] "GET /static/styles.css HTTP/1.1" 200 -
+127.0.0.1 - - [26/Apr/2026 22:23:34] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [26/Apr/2026 22:24:44] "GET /?v=2 HTTP/1.1" 200 -
+127.0.0.1 - - [26/Apr/2026 22:24:46] "GET /static/styles.css HTTP/1.1" 304 -
+127.0.0.1 - - [26/Apr/2026 22:25:35] "GET /?v=999 HTTP/1.1" 200 -
+127.0.0.1 - - [26/Apr/2026 22:25:35] "GET /static/styles.css HTTP/1.1" 304 -
+127.0.0.1 - - [26/Apr/2026 22:28:05] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [26/Apr/2026 22:28:08] "GET /static/styles.css HTTP/1.1" 304 -
+127.0.0.1 - - [26/Apr/2026 22:28:41] "GET /?v=123456789 HTTP/1.1" 200 -
+127.0.0.1 - - [26/Apr/2026 22:28:41] "GET /static/styles.css HTTP/1.1" 304 -
+127.0.0.1 - - [26/Apr/2026 22:28:45] "GET /?v=123456789 HTTP/1.1" 200 -
+127.0.0.1 - - [26/Apr/2026 22:28:45] "GET /static/styles.css HTTP/1.1" 304 -
+127.0.0.1 - - [26/Apr/2026 22:28:49] "GET /?v=123456789 HTTP/1.1" 200 -
+127.0.0.1 - - [26/Apr/2026 22:28:49] "GET /static/styles.css HTTP/1.1" 304 -
+127.0.0.1 - - [26/Apr/2026 22:29:22] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [26/Apr/2026 22:29:22] "GET /static/styles.css HTTP/1.1" 200 -
+127.0.0.1 - - [26/Apr/2026 23:09:05] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [26/Apr/2026 23:09:08] "GET /static/styles.css HTTP/1.1" 200 -
+127.0.0.1 - - [27/Apr/2026 01:44:43] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [27/Apr/2026 01:44:43] "GET /static/styles.css HTTP/1.1" 200 -
+127.0.0.1 - - [27/Apr/2026 01:44:44] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [27/Apr/2026 01:45:29] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [27/Apr/2026 01:45:29] "GET /static/styles.css HTTP/1.1" 200 -
+127.0.0.1 - - [27/Apr/2026 01:45:30] "GET /favicon.ico HTTP/1.1" 404 -
