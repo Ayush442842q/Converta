@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+.env
+.venv
+venv/
+ENV/
+
+# Logs
+*.log
+server.log
+server.err.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp / test files
+*.pdf
+*.docx
+*.xlsx
+*.zip
+uploads/
+output/
+temp/
+
+# IDE
+.vscode/
+.idea/
+.vercel

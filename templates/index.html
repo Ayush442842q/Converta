@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Converta is a local-first file conversion workspace.">
+  <title>Converta - File conversion workspace</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='settings.css') }}">
+</head>
+<body>
+  <header class="topbar dashboard-topbar">
+    <a href="{{ url_for('index') }}" class="dashboard-logo" aria-label="Converta home">
+      <span class="logo-icon">C</span>
+      <span>Converta</span>
+    </a>
+    <a class="btn btn-primary" href="{{ url_for('tool_page', tool_id='markdown-to-pdf') }}">Start converting</a>
+  </header>
+
+  <main class="dashboard-container">
+    <section class="dashboard-hero">
+      <p class="eyebrow">Private, fast, local-first</p>
+      <h1>Convert documents without the clutter.</h1>
+      <p>Converta gives you a clean conversion desk for Markdown to PDF today, with a roadmap for PDFs, images, and office files next.</p>
+    </section>
+
+    {% for category in categories %}
+      {% if tools_by_category[category] %}
+      <section class="category-section">
+        <div class="category-heading">
+          <h2 class="category-title">{{ category }}</h2>
+          <span>{{ tools_by_category[category]|length }} tools</span>
+        </div>
+        <div class="tool-grid">
+          {% for tool in tools_by_category[category] %}
+            {% if tool.status == 'active' %}
+              <a href="{{ url_for('tool_page', tool_id=tool.id) }}" class="tool-card active-tool">
+            {% else %}
+              <div class="tool-card disabled-tool" aria-disabled="true">
+            {% endif %}
+                <span class="tool-icon-box">{{ tool.icon }}</span>
+                <span class="tool-info">
+                  <span class="tool-name">{{ tool.name }}</span>
+                  <span class="tool-desc">{{ tool.description }}</span>
+                </span>
+                <span class="status-badge status-{{ tool.status }}">
+                  {{ "Ready" if tool.status == "active" else "Soon" }}
+                </span>
+            {% if tool.status == 'active' %}
+              </a>
+            {% else %}
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+    {% endfor %}
+  </main>
+</body>
+</html>

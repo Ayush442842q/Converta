@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-layout="even" data-font="inter">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{{ tool.description }}">
+  <title>{{ tool.name }} - Converta</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='settings.css') }}">
+</head>
+<body>
+  <div class="drop-overlay" id="dropOverlay">
+    <div class="drop-overlay-box">
+      <div class="drop-icon">Drop</div>
+      <p>Drop Markdown files here</p>
+      <p class="drop-hint">.md, .markdown, or .txt</p>
+    </div>
+  </div>
+
+  <main class="app-shell">
+    <section class="topbar">
+      <a href="{{ url_for('index') }}" class="brand">
+        <span class="brand-icon">{{ tool.icon }}</span>
+        <span class="brand-text">
+          <h1>{{ tool.name }}</h1>
+          <p>{{ tool.description }}</p>
+        </span>
+      </a>
+      <div class="toolbar">
+        <label class="btn-outline" for="filePicker" id="fileLabel">Choose files</label>
+        <input id="filePicker" type="file" accept="{{ tool.accept }}" multiple>
+        <button type="button" class="btn" id="settingsBtn" title="Appearance settings">Settings</button>
+        <button type="button" class="btn btn-primary" id="downloadTextBtn">Download PDF</button>
+      </div>
+    </section>
+
+    {% if tool.status != "active" %}
+      <section class="upload-landing">
+        <div class="landing-inner">
+          <div class="landing-icon">{{ tool.icon }}</div>
+          <h2 class="landing-title">This tool is coming soon.</h2>
+          <p class="landing-subtitle">The interface is ready, but the converter backend has not been enabled yet.</p>
+          <a class="landing-select-btn" href="{{ url_for('index') }}">Back to tools</a>
+        </div>
+      </section>
+    {% else %}
+      <section class="upload-landing" id="uploadLanding">
+        <div class="landing-inner">
+          <div class="landing-icon">MD</div>
+          <h2 class="landing-title">Start with files or paste Markdown.</h2>
+          <p class="landing-subtitle">Convert one document directly, or batch multiple files into a ZIP.</p>
+          <div class="landing-upload-row">
+            <label class="landing-select-btn" for="landingPicker">Select files</label>
+            <input id="landingPicker" type="file" accept="{{ tool.accept }}" multiple>
+          </div>
+          <p class="landing-or">or <a href="#" class="landing-paste-link" id="pasteLink">paste content in the editor</a></p>
+          <div class="landing-features">
+            <span class="feature-tag">Live preview</span>
+            <span class="feature-tag">Batch ZIP export</span>
+            <span class="feature-tag">UTF-8 Markdown</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="file-queue-view" id="fileQueueView" hidden>
+        <div class="queue-header">
+          <div class="queue-header-left">
+            <button type="button" class="queue-back-btn" id="queueBackBtn">Back</button>
+            <span class="queue-title">Conversion queue</span>
+            <span class="queue-count" id="queueCount">0 files</span>
+          </div>
+          <div class="queue-header-right">
+            <label class="btn-add-more" for="addMorePicker">Add files</label>
+            <input id="addMorePicker" type="file" accept="{{ tool.accept }}" multiple>
+            <button type="button" class="btn-convert-all" id="convertAllBtn">Convert all</button>
+          </div>
+        </div>
+        <div class="queue-progress-wrap" id="queueProgressWrap">
+          <div class="queue-progress-bar" id="queueProgressBar"></div>
+        </div>
+        <div class="queue-list" id="queueList"></div>
+        <div class="queue-footer">
+          <div class="queue-summary" id="queueSummary"></div>
+          <span>Ctrl+Enter converts the current view</span>
+        </div>
+      </section>
+
+      <form class="workspace" id="editorForm" action="{{ url_for('convert_markdown_to_pdf_batch') }}" method="post" hidden>
+        <div class="pane editor-pane">
+          <div class="pane-header">
+            <div class="pane-title"><span class="dot dot-editor"></span>Editor</div>
+            <div class="pane-actions">
+              <input class="name-input" name="output_name" type="text" placeholder="document.pdf" id="outputName">
+              <span class="char-count" id="charCount">0 chars</span>
+              <button type="button" class="pane-back-btn" id="backBtn">New file</button>
+            </div>
+          </div>
+          <textarea id="markdownText" name="markdown_text" placeholder="Type or paste Markdown here..." spellcheck="false"></textarea>
+        </div>
+        <div class="pane preview-pane">
+          <div class="pane-header">
+            <div class="pane-title"><span class="dot dot-preview"></span>Preview</div>
+          </div>
+          <div class="preview-content" id="previewContent">
+            <div class="preview-empty">
+              <div class="preview-empty-icon">Preview</div>
+              <p>Start typing to see a live preview</p>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <div class="status-bar" id="statusBar">
+        <div class="status-left">
+          <span><span class="status-dot"></span>Ready</span>
+          <span id="statusLines">0 lines</span>
+          <span id="statusWords">0 words</span>
+        </div>
+        <div class="status-right">
+          <span>UTF-8</span>
+          <span>Markdown</span>
+        </div>
+      </div>
+    {% endif %}
+  </main>
+
+  <div class="settings-backdrop" id="settingsBackdrop"></div>
+  <aside class="settings-panel" id="settingsPanel" aria-label="Appearance settings">
+    <div class="settings-header">
+      <h2>Appearance</h2>
+      <button class="settings-close" id="settingsClose" aria-label="Close settings">x</button>
+    </div>
+    <div class="settings-body">
+      <div class="setting-section">
+        <div class="setting-label">Theme</div>
+        <div class="chip-group" data-setting="theme">
+          <button type="button" class="chip active" data-value="dark">Dark</button>
+          <button type="button" class="chip" data-value="midnight">Midnight</button>
+          <button type="button" class="chip" data-value="forest">Forest</button>
+          <button type="button" class="chip" data-value="rose">Rose</button>
+          <button type="button" class="chip" data-value="light">Light</button>
+        </div>
+      </div>
+      <div class="setting-section">
+        <div class="setting-label">Layout</div>
+        <div class="chip-group" data-setting="layout">
+          <button type="button" class="chip active" data-value="even">Even</button>
+          <button type="button" class="chip" data-value="editor-wide">Editor wide</button>
+          <button type="button" class="chip" data-value="preview-wide">Preview wide</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <script>
+  (() => {
+    const activeTool = {{ "true" if tool.status == "active" else "false" }};
+    const endpoint = "{{ url_for('convert_markdown_to_pdf_batch') }}";
+    const html = document.documentElement;
+    const landing = document.getElementById('uploadLanding');
+    const queueView = document.getElementById('fileQueueView');
+    const editorForm = document.getElementById('editorForm');
+    const textarea = document.getElementById('markdownText');
+    const preview = document.getElementById('previewContent');
+    const queueList = document.getElementById('queueList');
+    const queueCount = document.getElementById('queueCount');
+    const queueSummary = document.getElementById('queueSummary');
+    const convertAllBtn = document.getElementById('convertAllBtn');
+    const downloadTextBtn = document.getElementById('downloadTextBtn');
+    const dropOverlay = document.getElementById('dropOverlay');
+    const charCount = document.getElementById('charCount');
+    const statusLines = document.getElementById('statusLines');
+    const statusWords = document.getElementById('statusWords');
+    const outputName = document.getElementById('outputName');
+    let queue = [];
+    let nextId = 1;
+    let currentView = 'landing';
+
+    function show(view) {
+      if (!activeTool) return;
+      landing.hidden = view !== 'landing';
+      queueView.hidden = view !== 'queue';
+      editorForm.hidden = view !== 'editor';
+      currentView = view;
+      if (view === 'queue') renderQueue();
+      if (view === 'editor') textarea.focus();
+    }
+
+    function addFiles(files) {
+      const known = new Set(queue.map(item => `${item.name}:${item.size}`));
+      Array.from(files).forEach(file => {
+        if (!/\.(md|markdown|txt)$/i.test(file.name)) return;
+        const key = `${file.name}:${file.size}`;
+        if (!known.has(key)) {
+          queue.push({ id: nextId++, file, name: file.name, size: file.size, status: 'pending', error: '' });
+          known.add(key);
+        }
+      });
+      show('queue');
+    }
+
+    function formatSize(bytes) {
+      if (bytes < 1024) return `${bytes} B`;
+      if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+      return `${(bytes / 1048576).toFixed(1)} MB`;
+    }
+
+    function renderQueue() {
+      const total = queue.length;
+      const done = queue.filter(item => item.status === 'done').length;
+      const failed = queue.filter(item => item.status === 'error').length;
+      queueCount.textContent = `${total} file${total === 1 ? '' : 's'}`;
+      queueSummary.textContent = total ? `${done} done, ${failed} failed` : '';
+      convertAllBtn.disabled = total === 0;
+
+      if (!total) {
+        queueList.innerHTML = '<div class="queue-empty">No files in the queue</div>';
+        return;
+      }
+
+      queueList.innerHTML = '';
+      queue.forEach(item => {
+        const row = document.createElement('div');
+        row.className = `queue-item status-${item.status}`;
+        row.innerHTML = `
+          <div class="qi-icon">MD</div>
+          <div class="qi-info">
+            <div class="qi-name"></div>
+            <div class="qi-meta">${formatSize(item.size)} ${item.error ? `<span>${item.error}</span>` : ''}</div>
+            <div class="qi-progress"><div class="qi-progress-inner"></div></div>
+          </div>
+          <span class="qi-badge ${item.status}">${item.status}</span>
+          <div class="qi-actions">
+            <button type="button" class="qi-btn edit" data-action="edit" data-id="${item.id}" title="Edit">Edit</button>
+            <button type="button" class="qi-btn remove" data-action="remove" data-id="${item.id}" title="Remove">Remove</button>
+          </div>`;
+        row.querySelector('.qi-name').textContent = item.name;
+        queueList.appendChild(row);
+      });
+    }
+
+    function downloadBlob(response, fallbackName) {
+      return response.blob().then(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const disposition = response.headers.get('Content-Disposition') || '';
+        const match = disposition.match(/filename="?([^"]+)"?/);
+        a.href = url;
+        a.download = match ? match[1] : fallbackName;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+    }
+
+    async function convertAll() {
+      const pending = queue.filter(item => item.status === 'pending');
+      if (!pending.length) return;
+      convertAllBtn.disabled = true;
+      pending.forEach(item => { item.status = 'converting'; });
+      renderQueue();
+
+      const formData = new FormData();
+      pending.forEach(item => formData.append('files', item.file, item.name));
+      try {
+        const response = await fetch(endpoint, { method: 'POST', body: formData });
+        if (!response.ok) throw new Error((await response.json()).error || 'Conversion failed');
+        await downloadBlob(response, pending.length === 1 ? pending[0].name.replace(/\.[^.]+$/, '.pdf') : 'converta_files.zip');
+        pending.forEach(item => { item.status = 'done'; });
+      } catch (error) {
+        pending.forEach(item => { item.status = 'error'; item.error = error.message; });
+      }
+      convertAllBtn.disabled = false;
+      renderQueue();
+    }
+
+    function escapeHtml(value) {
+      return value.replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[char]));
+    }
+
+    function renderBasicMarkdown(value) {
+      const lines = escapeHtml(value).split('\n');
+      let inList = false;
+      const output = [];
+      for (const line of lines) {
+        const heading = line.match(/^(#{1,6})\s+(.+)$/);
+        const bullet = line.match(/^[-*]\s+(.+)$/);
+        if (heading) {
+          if (inList) { output.push('</ul>'); inList = false; }
+          output.push(`<h${heading[1].length}>${heading[2]}</h${heading[1].length}>`);
+        } else if (bullet) {
+          if (!inList) { output.push('<ul>'); inList = true; }
+          output.push(`<li>${bullet[1]}</li>`);
+        } else if (line.trim()) {
+          if (inList) { output.push('</ul>'); inList = false; }
+          output.push(`<p>${line}</p>`);
+        } else if (inList) {
+          output.push('</ul>');
+          inList = false;
+        }
+      }
+      if (inList) output.push('</ul>');
+      return output.join('');
+    }
+
+    function updatePreview() {
+      const text = textarea.value;
+      preview.innerHTML = text.trim()
+        ? renderBasicMarkdown(text)
+        : '<div class="preview-empty"><div class="preview-empty-icon">Preview</div><p>Start typing to see a live preview</p></div>';
+      const lines = text ? text.split('\n').length : 0;
+      const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+      charCount.textContent = `${text.length.toLocaleString()} chars`;
+      statusLines.textContent = `${lines} line${lines === 1 ? '' : 's'}`;
+      statusWords.textContent = `${words} word${words === 1 ? '' : 's'}`;
+    }
+
+    if (!activeTool) return;
+    document.getElementById('landingPicker').addEventListener('change', event => addFiles(event.target.files));
+    document.getElementById('filePicker').addEventListener('change', event => addFiles(event.target.files));
+    document.getElementById('addMorePicker').addEventListener('change', event => addFiles(event.target.files));
+    document.getElementById('pasteLink').addEventListener('click', event => { event.preventDefault(); show('editor'); });
+    document.getElementById('queueBackBtn').addEventListener('click', () => show('landing'));
+    document.getElementById('backBtn').addEventListener('click', () => show(queue.length ? 'queue' : 'landing'));
+    convertAllBtn.addEventListener('click', convertAll);
+    textarea.addEventListener('input', updatePreview);
+    downloadTextBtn.addEventListener('click', () => {
+      if (currentView === 'queue') return convertAll();
+      show('editor');
+      if (textarea.value.trim()) editorForm.requestSubmit();
+    });
+    editorForm.addEventListener('submit', () => {
+      if (!outputName.value.trim()) outputName.value = 'document.pdf';
+    });
+    queueList.addEventListener('click', async event => {
+      const button = event.target.closest('[data-action]');
+      if (!button) return;
+      const item = queue.find(entry => entry.id === Number(button.dataset.id));
+      if (!item) return;
+      if (button.dataset.action === 'remove') queue = queue.filter(entry => entry.id !== item.id);
+      if (button.dataset.action === 'edit') {
+        textarea.value = await item.file.text();
+        outputName.value = item.name.replace(/\.[^.]+$/, '.pdf');
+        updatePreview();
+        show('editor');
+      }
+      renderQueue();
+    });
+
+    let dragDepth = 0;
+    document.addEventListener('dragenter', event => { event.preventDefault(); dragDepth += 1; dropOverlay.classList.add('active'); });
+    document.addEventListener('dragleave', event => { event.preventDefault(); dragDepth -= 1; if (dragDepth <= 0) dropOverlay.classList.remove('active'); });
+    document.addEventListener('dragover', event => event.preventDefault());
+    document.addEventListener('drop', event => {
+      event.preventDefault();
+      dragDepth = 0;
+      dropOverlay.classList.remove('active');
+      addFiles(event.dataTransfer.files);
+    });
+
+    document.addEventListener('keydown', event => {
+      if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+        event.preventDefault();
+        if (currentView === 'queue') convertAll();
+        if (currentView === 'editor') editorForm.requestSubmit();
+      }
+      if (event.key === 'Escape') closeSettings();
+    });
+
+    const settingsPanel = document.getElementById('settingsPanel');
+    const settingsBackdrop = document.getElementById('settingsBackdrop');
+    function openSettings() { settingsPanel.classList.add('open'); settingsBackdrop.classList.add('open'); }
+    function closeSettings() { settingsPanel.classList.remove('open'); settingsBackdrop.classList.remove('open'); }
+    document.getElementById('settingsBtn').addEventListener('click', openSettings);
+    document.getElementById('settingsClose').addEventListener('click', closeSettings);
+    settingsBackdrop.addEventListener('click', closeSettings);
+    document.querySelectorAll('.chip-group').forEach(group => {
+      group.addEventListener('click', event => {
+        const chip = event.target.closest('.chip');
+        if (!chip) return;
+        group.querySelectorAll('.chip').forEach(item => item.classList.remove('active'));
+        chip.classList.add('active');
+        html.setAttribute(`data-${group.dataset.setting}`, chip.dataset.value);
+      });
+    });
+  })();
+  </script>
+</body>
+</html>
